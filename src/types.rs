@@ -1,3 +1,6 @@
+// the project related types
+
+
 pub enum BookmarkTree {
     Folder(Folder),
     Link(String)
