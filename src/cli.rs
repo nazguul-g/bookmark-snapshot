@@ -1,29 +1,33 @@
 // Handle parsing CLI arguments
 
-use clap::{Arg, ArgMatches, Command, arg};
+use clap::{Arg, ArgMatches, Command, arg, builder::Str};
+// Unless user specified the path, we use predefined paths for system to search.
+// the path logic is broken
+// decision:  
+//  automaticlly search for browsers 
+//  if none found we ask user to input path 
+#[derive(Debug)]
 
 enum Browsers {
-    Brave(Browser),
-    Chrome(Browser),
-    Tor(Browser),
-    FireFox(Browser),
+    Brave(String),
+    Chrome(String),
+    Tor(String),
+    FireFox(String),
 }
-enum Routines {
-    Week(u32),
-    Month(u32),
-    Day(u32),
-}
+#[derive(Debug)]
 struct Options {
     browsers: Vec<Browsers>,
     github: Option<String>,
     output_dir: Option<String>,
     routine: Option<Routines>,
 }
-
-// unless user specified the path, we use predefined paths for system to search.
-struct Browser {
-    paths: Vec<String>,
+#[derive(Debug)]
+enum Routines {
+    Week(u32),
+    Month(u32),
+    Day(u32),
 }
+
 /*
 main command : --browser <Browsers> (not required , looks for available browsers) , subcommand : --path <PATH> (not required , looks for default paths) ,
 main command : --github <REPO_URL> (not required , save local only).
@@ -70,27 +74,21 @@ pub fn cli() {
                 .required(false)
                 .value_parser(["day", "week", "month"]),
         )
-        .subcommand(
-            Command::new("count")
-                .about("count operation for routines")
-                .arg(
-                    Arg::new("count")
-                        .long("count")
-                        .short('c')
-                        .value_name("COUNT")
-                        .value_parser(clap::value_parser!(u32))
-                        .required(false)
-                        .help("count for routine"),
-                ),
+        .arg(
+            Arg::new("path")
+                .long("browserpath")
+                .value_name("BROWSER_PATH")
+                .required(false)
+                .help("browser path"),
         )
-        .subcommand(
-            Command::new("path").about("path for specific browser").arg(
-                Arg::new("path")
-                    .long("browserpath")
-                    .value_name("BROWSER_PATH")
-                    .required(false)
-                    .help("browserpath"),
-            ),
+        .arg(
+            Arg::new("count")
+                .long("count")
+                .short('c')
+                .value_name("COUNT")
+                .value_parser(clap::value_parser!(u32))
+                .required(false)
+                .help("count for routine"),
         )
         .try_get_matches()
         .unwrap_or_else(|e| e.exit());
@@ -99,6 +97,7 @@ pub fn cli() {
             .error(clap::error::ErrorKind::InvalidSubcommand, e)
             .exit();
     }
+    println!("{:?}", handle_matches(&matches))
 }
 fn validate_routine_count(matches: &ArgMatches) -> Result<(), String> {
     if matches.subcommand_name() == Some("count") && matches.get_one::<String>("routine").is_none()
@@ -107,18 +106,67 @@ fn validate_routine_count(matches: &ArgMatches) -> Result<(), String> {
     }
     Ok(())
 }
-fn handle_matches(matches: &ArgMatches) {
+
+fn handle_matches(matches: &ArgMatches) -> Options {
     let mut options = Options {
         browsers: Vec::new(),
         github: None,
         output_dir: None,
         routine: None,
     };
-    if let Some(browsers) = matches.get_many::<String>("browser") {
-        for browser in browsers {}
+    // github repo match
+    if let Some(github) = matches.get_one::<String>("github") {
+        options.github = Some(github.clone());
     }
-}
+    // output path match
+    if let Some(outputpath) = matches.get_one::<String>("outputpath") {
+        options.output_dir = Some(outputpath.clone());
+    }
 
-// get browser default paths
-fn get_browser_path() {}
+    // routine matches
+    if let Some(routine) = matches.get_one::<String>("routine") {
+        // if let Some(count) = matches.get_one::<u32>("count") {
+        //     match routine.as_str() {
+        //         "day" => options.routine = Some(Routines::Day(count.clone())),
+        //         "week" => options.routine = Some(Routines::Week(count.clone())),
+        //         "month" => options.routine = Some(Routines::Month(count.clone())),
+        //         _ => (),
+        //     }
+        // } else {
+        //     match routine.as_str() {
+        //         "day" => options.routine = Some(Routines::Day(1)),
+        //         "week" => options.routine = Some(Routines::Week(1)),
+        //         "month" => options.routine = Some(Routines::Month(1)),
+        //         _ => (),
+        //     }
+        // }
+        //
+        let count = matches.get_one("count").copied().unwrap_or(1);
+
+        options.routine = match routine.as_str() {
+            "day" => Some(Routines::Day(count)),
+            "week" => Some(Routines::Week(count)),
+            "month" => Some(Routines::Month(count)),
+            _ => None,
+        };
+    }
+
+    // browsers match
+    if let Some(browsers) = matches.get_many::<String>("browser") {
+        
+        let path = "".to_string();
+
+        for browser in browsers {
+            match browser.as_str() {
+                "brave" => options.browsers.push(Browsers::Brave(path.clone())),
+                "tor" => options.browsers.push(Browsers::Tor(path.clone())),
+                "firefox" => options.browsers.push(Browsers::FireFox(path.clone())),
+                "chrome" => options.browsers.push(Browsers::Chrome(path.clone())),
+                _ => (),
+            }
+        }
+    }
+
+    options
+}
 

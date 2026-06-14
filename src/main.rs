@@ -1,5 +1,9 @@
+use crate::cli::cli;
+
 mod cli;
 mod io;
 mod types;
 
-fn main() {}
+fn main() {
+    cli();
+}
