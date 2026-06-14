@@ -15,8 +15,6 @@ main command : --browser <Browsers> (not required , looks for available browsers
 main command : --github <REPO_URL> (not required , save local only).
 main command : --outputpath <DIR_PATH> (not required, save in Documents).
 main command : --routine <DAY/WEEK/MONTH> , (not required, save one time only) , subcommand: --count <INTEGER> (not required, routine each DAY/WEEK/MONTH)
-
-
 */
 pub fn cli() {
     let matches = Command::new("Bookmarks snapshot")
