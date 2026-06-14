@@ -4,7 +4,7 @@ use clap::{Arg, ArgMatches, Command, arg, builder::Str};
 // Unless user specified the path, we use predefined paths for system to search.
 // the path logic is broken
 // decision:
-//  automaticlly search for browsers
+//  automatically search for browsers
 //  if none found we ask user to input path
 #[derive(Debug)]
 
@@ -15,11 +15,11 @@ enum Browsers {
     FireFox(String),
 }
 #[derive(Debug)]
-struct Options {
-    browsers: Vec<Browsers>,
-    github: Option<String>,
-    output_dir: Option<String>,
-    routine: Option<Routines>,
+pub struct Options {
+    pub browsers: Vec<Browsers>,
+    pub github: Option<String>,
+    pub output_dir: Option<String>,
+    pub routine: Option<Routines>,
 }
 impl Options {
     fn new() -> Self {
@@ -30,9 +30,10 @@ impl Options {
             routine: None,
         }
     }
+    fn add_path(&mut self, browser: Browsers, path: &str) {}
 }
 #[derive(Debug)]
-enum Routines {
+pub enum Routines {
     Week(u32),
     Month(u32),
     Day(u32),
@@ -43,6 +44,10 @@ main command : --browser <Browsers> (not required , looks for available browsers
 main command : --github <REPO_URL> (not required , save local only).
 main command : --outputpath <DIR_PATH> (not required, save in Documents).
 main command : --routine <DAY/WEEK/MONTH> , (not required, save one time only) , subcommand: --count <INTEGER> (not required, routine each DAY/WEEK/MONTH)
+
+future commands : 
+--status (check the status of the progam , return info about the options) 
+-- update (using this as prefix followed by the original commands , make the program update the config )
 */
 
 // due to luck of documentation about clap derive, decided to use clap builder instead
@@ -79,17 +84,11 @@ pub fn cli() {
         .arg(
             Arg::new("routine")
                 .long("routine")
+                .short('r')
                 .value_name("SCHEDULE")
                 .help("Routine schedule (day/week/month)")
                 .required(false)
                 .value_parser(["day", "week", "month"]),
-        )
-        .arg(
-            Arg::new("path")
-                .long("browserpath")
-                .value_name("BROWSER_PATH")
-                .required(false)
-                .help("browser path"),
         )
         .arg(
             Arg::new("count")
