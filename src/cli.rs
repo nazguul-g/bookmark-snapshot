@@ -3,9 +3,9 @@
 use clap::{Arg, ArgMatches, Command, arg, builder::Str};
 // Unless user specified the path, we use predefined paths for system to search.
 // the path logic is broken
-// decision:  
-//  automaticlly search for browsers 
-//  if none found we ask user to input path 
+// decision:
+//  automaticlly search for browsers
+//  if none found we ask user to input path
 #[derive(Debug)]
 
 enum Browsers {
@@ -20,6 +20,16 @@ struct Options {
     github: Option<String>,
     output_dir: Option<String>,
     routine: Option<Routines>,
+}
+impl Options {
+    fn new() -> Self {
+        Options {
+            browsers: Vec::new(),
+            github: None,
+            output_dir: None,
+            routine: None,
+        }
+    }
 }
 #[derive(Debug)]
 enum Routines {
@@ -97,7 +107,9 @@ pub fn cli() {
             .error(clap::error::ErrorKind::InvalidSubcommand, e)
             .exit();
     }
-    println!("{:?}", handle_matches(&matches))
+
+    // TEST CLI COMMANDS
+    // println!("{:?}", handle_matches(&matches))
 }
 fn validate_routine_count(matches: &ArgMatches) -> Result<(), String> {
     if matches.subcommand_name() == Some("count") && matches.get_one::<String>("routine").is_none()
@@ -108,12 +120,7 @@ fn validate_routine_count(matches: &ArgMatches) -> Result<(), String> {
 }
 
 fn handle_matches(matches: &ArgMatches) -> Options {
-    let mut options = Options {
-        browsers: Vec::new(),
-        github: None,
-        output_dir: None,
-        routine: None,
-    };
+    let mut options = Options::new();
     // github repo match
     if let Some(github) = matches.get_one::<String>("github") {
         options.github = Some(github.clone());
@@ -153,7 +160,6 @@ fn handle_matches(matches: &ArgMatches) -> Options {
 
     // browsers match
     if let Some(browsers) = matches.get_many::<String>("browser") {
-        
         let path = "".to_string();
 
         for browser in browsers {
@@ -169,4 +175,3 @@ fn handle_matches(matches: &ArgMatches) -> Options {
 
     options
 }
-
