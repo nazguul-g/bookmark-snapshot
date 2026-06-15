@@ -1,14 +1,15 @@
 // Handle parsing CLI arguments
 
+use std::{env, process::exit};
+
 use clap::{Arg, ArgMatches, Command};
 
-use crate::types::{Browsers, Options, Routines};
+use crate::types::{Browsers, Options, Routines, SupportedOSs};
 // Unless user specified the path, we use predefined paths for system to search.
 // the path logic is broken
 // decision:
 //  automatically search for browsers
 //  if none found we ask user to input path
-
 
 /*
 main command : --browser <Browsers> (not required , looks for available browsers) , subcommand : --path <PATH> (not required , looks for default paths) ,
@@ -16,8 +17,8 @@ main command : --github <REPO_URL> (not required , save local only).
 main command : --outputpath <DIR_PATH> (not required, save in Documents).
 main command : --routine <DAY/WEEK/MONTH> , (not required, save one time only) , subcommand: --count <INTEGER> (not required, routine each DAY/WEEK/MONTH)
 
-future commands : 
---status (check the status of the progam , return info about the options) 
+future commands :
+--status (check the status of the progam , return info about the options)
 -- update (using this as prefix followed by the original commands , make the program update the config )
 */
 
@@ -79,7 +80,7 @@ pub fn cli() {
     }
 
     // TEST CLI COMMANDS
-     println!("{:?}", handle_matches(&matches))
+    println!("{:?}", handle_matches(&matches))
 }
 fn validate_routine_count(matches: &ArgMatches) -> Result<(), String> {
     if matches.subcommand_name() == Some("count") && matches.get_one::<String>("routine").is_none()
@@ -130,18 +131,25 @@ fn handle_matches(matches: &ArgMatches) -> Options {
 
     // browsers match
     if let Some(browsers) = matches.get_many::<String>("browser") {
-        let path = "".to_string();
-
         for browser in browsers {
             match browser.as_str() {
-                "brave" => options.browsers.push(Browsers::Brave(path.clone())),
-                "tor" => options.browsers.push(Browsers::Tor(path.clone())),
-                "firefox" => options.browsers.push(Browsers::FireFox(path.clone())),
-                "chrome" => options.browsers.push(Browsers::Chrome(path.clone())),
+                "brave" => options.browsers.push(Browsers::Brave),
+                "tor" => options.browsers.push(Browsers::Tor),
+                "firefox" => options.browsers.push(Browsers::FireFox),
+                "chrome" => options.browsers.push(Browsers::Chrome),
                 _ => (),
             }
         }
     }
 
+    let os = env::consts::OS;
+    if os == SupportedOSs::Linux.to_string().to_lowercase() {
+        options.os = Some(SupportedOSs::Linux)
+    } else if os == SupportedOSs::Windows.to_string().to_lowercase() {
+        options.os = Some(SupportedOSs::Windows)
+    } else {
+        eprintln!("this tool not supported on {} , Quiting....", os);
+        exit(1)
+    }
     options
 }

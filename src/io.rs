@@ -12,8 +12,9 @@
 //      tor
 //      firefox
 
-use crate::types::Options;
+use std::io;
 
+use crate::types::{Browser, Browsers, Options};
 
 // config file strategy
 // new config :
@@ -50,4 +51,17 @@ struct Config {
 // the actual bookmark path differs from browser to browser, gecko or chromium have nothing to do with that.
 //
 
-pub fn find_browsers () {}
+// checks if user specified browsers
+// return
+pub fn find_browsers(selected_options: &Options) -> io::Result<Vec<Browser>> {
+    let all_browsers = Browsers::all();
+    let working_browsers: &[Browsers] = if selected_options.browsers.is_empty() {
+        &all_browsers
+    } else {
+        &selected_options.browsers
+    };
+
+    
+
+    Ok(vec![])
+}
