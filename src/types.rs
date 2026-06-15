@@ -14,7 +14,7 @@ pub struct Folder {
 // CLI RELATED TYPES
 #[derive(Debug)]
 pub struct Options {
-    pub browsers: Vec<Browsers>,
+    pub browsers: Vec<SupportedBrowsers>,
     pub github: Option<String>,
     pub output_dir: Option<String>,
     pub routine: Option<Routines>,
@@ -30,7 +30,7 @@ impl Options {
             os: None,
         }
     }
-    fn add_path(&mut self, browser: Browsers, path: &str) {}
+    fn add_path(&mut self, browser: SupportedBrowsers, path: &str) {}
 }
 
 #[derive(Debug)]
@@ -67,26 +67,31 @@ pub static BROWSER_DATA_FOLDER_NAME: LazyLock<HashMap<String, String>> = LazyLoc
     browser_map.insert("tor".to_string(), "TorBrowser/Data/Browser".to_string());
     browser_map
 });
-pub static COMMON_DATA_LOCATIONS: LazyLock<HashMap<SupportedOSs, Vec<&str>>> =
+pub static COMMON_USERDATA_LOCATIONS: LazyLock<HashMap<SupportedOSs, Vec<&str>>> =
     LazyLock::new(|| {
         let mut map: HashMap<SupportedOSs, Vec<&str>> = HashMap::new();
-        map.insert(SupportedOSs::Linux, vec!["~/.config/", "~/.local/share/"]);
+        map.insert(SupportedOSs::Linux, vec!["/.config/", "/.local/share/"]);
         map.insert(SupportedOSs::Windows, vec!["%AppData%", "%LocalAppData%"]);
         map
     });
 #[derive(Debug, PartialEq)]
-pub enum Browsers {
+pub enum SupportedBrowsers {
     Brave,
     Chrome,
     Tor,
     FireFox,
 }
-impl Display for Browsers {
+impl Display for SupportedBrowsers {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self)
+        match self {
+            SupportedBrowsers::Brave => write!(f, "brave"),
+            SupportedBrowsers::Chrome => write!(f, "chrome"),
+            SupportedBrowsers::FireFox => write!(f, "firefox"),
+            SupportedBrowsers::Tor => write!(f, "tor"),
+        }
     }
 }
-impl Browsers {
+impl SupportedBrowsers {
     pub fn all() -> Vec<Self> {
         vec![Self::Brave, Self::Chrome, Self::Tor, Self::FireFox]
     }
@@ -96,16 +101,39 @@ pub enum BookMarkStoreType {
     SQLite,
 }
 pub struct Browser {
-    pub data_folder_name: String,
     pub store_type: BookMarkStoreType,
-    pub data_folder_location: String,
+    pub data_folder_id: String,
 }
 impl Browser {
-    pub fn new(browser: Browsers) {
+    pub fn new(browser: &SupportedBrowsers) -> Self {
         let data_folders = BROWSER_DATA_FOLDER_NAME.clone();
         let browser_name = browser.to_string();
-        if browser == Browsers::Brave || browser == Browsers::Chrome {
-        } else {
+
+        match browser_name.as_str() {
+            "brave" => Browser {
+                data_folder_id: data_folders.get("brave").unwrap().clone(),
+                store_type: BookMarkStoreType::JSON,
+            },
+            "chrome" => Browser {
+                data_folder_id: data_folders.get("chrome").unwrap().clone(),
+                store_type: BookMarkStoreType::JSON,
+            },
+            "tor" => Browser {
+                data_folder_id: data_folders.get("tor").unwrap().clone(),
+                store_type: BookMarkStoreType::SQLite,
+            },
+            "firefox" => Browser {
+                data_folder_id: data_folders.get("firefox").unwrap().clone(),
+                store_type: BookMarkStoreType::SQLite,
+            },
+            _ => unreachable!(
+                "unsupported browser ,{}. this statement is impossigble to reach",
+                browser_name
+            ),
         }
     }
+}
+
+pub struct Config {
+    pub options: Options,
 }

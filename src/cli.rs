@@ -4,7 +4,10 @@ use std::{env, process::exit};
 
 use clap::{Arg, ArgMatches, Command};
 
-use crate::types::{Browsers, Options, Routines, SupportedOSs};
+use crate::{
+    io::find_browsers,
+    types::{Options, Routines, SupportedBrowsers, SupportedOSs},
+};
 // Unless user specified the path, we use predefined paths for system to search.
 // the path logic is broken
 // decision:
@@ -80,7 +83,9 @@ pub fn cli() {
     }
 
     // TEST CLI COMMANDS
-    println!("{:?}", handle_matches(&matches))
+    let options = handle_matches(&matches);
+    find_browsers(&options);
+    println!("{:?}", options)
 }
 fn validate_routine_count(matches: &ArgMatches) -> Result<(), String> {
     if matches.subcommand_name() == Some("count") && matches.get_one::<String>("routine").is_none()
@@ -133,10 +138,10 @@ fn handle_matches(matches: &ArgMatches) -> Options {
     if let Some(browsers) = matches.get_many::<String>("browser") {
         for browser in browsers {
             match browser.as_str() {
-                "brave" => options.browsers.push(Browsers::Brave),
-                "tor" => options.browsers.push(Browsers::Tor),
-                "firefox" => options.browsers.push(Browsers::FireFox),
-                "chrome" => options.browsers.push(Browsers::Chrome),
+                "brave" => options.browsers.push(SupportedBrowsers::Brave),
+                "tor" => options.browsers.push(SupportedBrowsers::Tor),
+                "firefox" => options.browsers.push(SupportedBrowsers::FireFox),
+                "chrome" => options.browsers.push(SupportedBrowsers::Chrome),
                 _ => (),
             }
         }
