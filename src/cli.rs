@@ -4,10 +4,6 @@ use std::{env, process::exit};
 
 use clap::{Arg, ArgMatches, Command};
 
-use crate::{
-    io::find_browsers,
-    types::{Options, Routines, SupportedBrowsers, SupportedOSs},
-};
 // Unless user specified the path, we use predefined paths for system to search.
 // the path logic is broken
 // decision:
@@ -76,85 +72,5 @@ pub fn cli() {
         )
         .try_get_matches()
         .unwrap_or_else(|e| e.exit());
-    if let Err(e) = validate_routine_count(&matches) {
-        let _ = Command::new("bookmark snapshot")
-            .error(clap::error::ErrorKind::InvalidSubcommand, e)
-            .exit();
-    }
-
-    // TEST CLI COMMANDS
-    let options = handle_matches(&matches);
-    find_browsers(&options);
-    println!("{:?}", options)
-}
-fn validate_routine_count(matches: &ArgMatches) -> Result<(), String> {
-    if matches.subcommand_name() == Some("count") && matches.get_one::<String>("routine").is_none()
-    {
-        return Err("The 'count' subcommand can only be used with --routine option".to_string());
-    }
-    Ok(())
-}
-
-fn handle_matches(matches: &ArgMatches) -> Options {
-    let mut options = Options::new();
-    // github repo match
-    if let Some(github) = matches.get_one::<String>("github") {
-        options.github = Some(github.clone());
-    }
-    // output path match
-    if let Some(outputpath) = matches.get_one::<String>("outputpath") {
-        options.output_dir = Some(outputpath.clone());
-    }
-
-    // routine matches
-    if let Some(routine) = matches.get_one::<String>("routine") {
-        // if let Some(count) = matches.get_one::<u32>("count") {
-        //     match routine.as_str() {
-        //         "day" => options.routine = Some(Routines::Day(count.clone())),
-        //         "week" => options.routine = Some(Routines::Week(count.clone())),
-        //         "month" => options.routine = Some(Routines::Month(count.clone())),
-        //         _ => (),
-        //     }
-        // } else {
-        //     match routine.as_str() {
-        //         "day" => options.routine = Some(Routines::Day(1)),
-        //         "week" => options.routine = Some(Routines::Week(1)),
-        //         "month" => options.routine = Some(Routines::Month(1)),
-        //         _ => (),
-        //     }
-        // }
-        //
-        let count = matches.get_one("count").copied().unwrap_or(1);
-
-        options.routine = match routine.as_str() {
-            "day" => Some(Routines::Day(count)),
-            "week" => Some(Routines::Week(count)),
-            "month" => Some(Routines::Month(count)),
-            _ => None,
-        };
-    }
-
-    // browsers match
-    if let Some(browsers) = matches.get_many::<String>("browser") {
-        for browser in browsers {
-            match browser.as_str() {
-                "brave" => options.browsers.push(SupportedBrowsers::Brave),
-                "tor" => options.browsers.push(SupportedBrowsers::Tor),
-                "firefox" => options.browsers.push(SupportedBrowsers::FireFox),
-                "chrome" => options.browsers.push(SupportedBrowsers::Chrome),
-                _ => (),
-            }
-        }
-    }
-
-    let os = env::consts::OS;
-    if os == SupportedOSs::Linux.to_string().to_lowercase() {
-        options.os = Some(SupportedOSs::Linux)
-    } else if os == SupportedOSs::Windows.to_string().to_lowercase() {
-        options.os = Some(SupportedOSs::Windows)
-    } else {
-        eprintln!("this tool not supported on {} , Quiting....", os);
-        exit(1)
-    }
-    options
+    
 }
