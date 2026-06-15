@@ -1,43 +1,14 @@
 // Handle parsing CLI arguments
 
-use clap::{Arg, ArgMatches, Command, arg, builder::Str};
+use clap::{Arg, ArgMatches, Command};
+
+use crate::types::{Browsers, Options, Routines};
 // Unless user specified the path, we use predefined paths for system to search.
 // the path logic is broken
 // decision:
 //  automatically search for browsers
 //  if none found we ask user to input path
-#[derive(Debug)]
 
-enum Browsers {
-    Brave(String),
-    Chrome(String),
-    Tor(String),
-    FireFox(String),
-}
-#[derive(Debug)]
-pub struct Options {
-    pub browsers: Vec<Browsers>,
-    pub github: Option<String>,
-    pub output_dir: Option<String>,
-    pub routine: Option<Routines>,
-}
-impl Options {
-    fn new() -> Self {
-        Options {
-            browsers: Vec::new(),
-            github: None,
-            output_dir: None,
-            routine: None,
-        }
-    }
-    fn add_path(&mut self, browser: Browsers, path: &str) {}
-}
-#[derive(Debug)]
-pub enum Routines {
-    Week(u32),
-    Month(u32),
-    Day(u32),
-}
 
 /*
 main command : --browser <Browsers> (not required , looks for available browsers) , subcommand : --path <PATH> (not required , looks for default paths) ,
@@ -108,7 +79,7 @@ pub fn cli() {
     }
 
     // TEST CLI COMMANDS
-    // println!("{:?}", handle_matches(&matches))
+     println!("{:?}", handle_matches(&matches))
 }
 fn validate_routine_count(matches: &ArgMatches) -> Result<(), String> {
     if matches.subcommand_name() == Some("count") && matches.get_one::<String>("routine").is_none()
