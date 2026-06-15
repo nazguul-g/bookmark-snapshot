@@ -1,6 +1,6 @@
 // Handle parsing CLI arguments
 
-use std::{env, process::exit};
+use std::io;
 
 use clap::{Arg, ArgMatches, Command};
 
@@ -24,16 +24,16 @@ future commands :
 // due to luck of documentation about clap derive, decided to use clap builder instead
 pub fn cli() {
     let matches = Command::new("Bookmarks snapshot")
-        .about("Automaticlly saves browser booksmarks")
-        .version("0.1")
+        .about("Automaticlly save browser booksmarks")
+        .version("1.0-alpha")
         .arg(
             Arg::new("browser")
                 .long("browser")
                 .short('b')
                 .value_name("BROWSER")
-                .help("Specify browser. Supported browser are : Brave, Tor, Firefox, Chrome")
+                .help("Supported browser are : Brave, Firefox, Chrome")
                 .required(false)
-                .value_parser(["brave", "chrome", "tor", "firefox"])
+                .value_parser(["brave", "chrome", "firefox"])
                 .num_args(1..),
         )
         .arg(
@@ -72,5 +72,27 @@ pub fn cli() {
         )
         .try_get_matches()
         .unwrap_or_else(|e| e.exit());
-    
+
+    if verify_routine_count(&matches).is_err() {
+        let _ = Command::new("")
+            .error(
+                clap::error::ErrorKind::InvalidSubcommand,
+                "found no routine options. usage: --routine <day/week/month>.
+                (not required,save one time only) , subcommand: --count <INTEGER> (default to one)",
+            )
+            .exit();
+    }
+}
+
+fn verify_routine_count(matches: &ArgMatches) -> Result<(), ()> {
+    if let Some(_) = matches.get_one::<u32>("count")
+        && matches.get_one::<String>("routine").is_none()
+    {
+        return Err(());
+    }
+    Ok(())
+}
+
+fn handle_matches(matches: &ArgMatches) -> io::Result<()> {
+    Ok(())
 }
