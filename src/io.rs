@@ -92,7 +92,7 @@ fn find_linux(browser: Browser) {
         for entry in glob(&pattern).expect("failed to read the glob pattern") {
             match entry {
                 Ok(path) => println!("{:?}", path),
-                Err(e) => con,
+                Err(e) => continue,
             }
         }
     }
