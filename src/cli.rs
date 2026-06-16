@@ -3,6 +3,7 @@
 use std::{fs::TryLockError::Error, io, process::exit};
 
 use clap::{Arg, ArgMatches, Command};
+use colored::Colorize;
 use dialoguer::Input;
 
 use crate::{
@@ -156,10 +157,9 @@ fn handle_matches(matches: &ArgMatches) -> io::Result<CliOptions> {
                 // do we even have access to write in the directory?
                 // i only checked the existence
                 // to-do: check the write access
-                let save_path_input: String = Input::new()
-                    .with_prompt("The Save directory not found. please input a valid path")
-                    .interact()
-                    .unwrap();
+
+                let save_path_input: String =
+                    get_input("The Save directory not found. please input a valid path");
                 save_path = save_path_input;
             }
         }
@@ -167,4 +167,11 @@ fn handle_matches(matches: &ArgMatches) -> io::Result<CliOptions> {
     }
     println!("{:?}", options);
     Ok(options)
+}
+fn get_input(message: &str) -> String {
+    let input: String = Input::new()
+        .with_prompt(format!("{}", message.on_bright_red()))
+        .interact()
+        .unwrap();
+    input
 }
