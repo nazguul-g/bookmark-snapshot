@@ -1,8 +1,14 @@
 // Handle parsing CLI arguments
 
-use std::io;
+use std::{fs::TryLockError::Error, io, process::exit};
 
 use clap::{Arg, ArgMatches, Command};
+use dialoguer::Input;
+
+use crate::{
+    io::check_path,
+    types::{Browser, CliOptions, Routine, SupportedBrowsers, SupportedOS},
+};
 
 // Unless user specified the path, we use predefined paths for system to search.
 // the path logic is broken
@@ -22,7 +28,7 @@ future commands :
 */
 
 // due to luck of documentation about clap derive, decided to use clap builder instead
-pub fn cli() {
+pub fn cli() -> io::Result<()> {
     let matches = Command::new("Bookmarks snapshot")
         .about("Automaticlly save browser booksmarks")
         .version("1.0-alpha")
@@ -31,7 +37,7 @@ pub fn cli() {
                 .long("browser")
                 .short('b')
                 .value_name("BROWSER")
-                .help("Supported browser are : Brave, Firefox, Chrome")
+                .help("Supported browser are : brave, firefox, chrome")
                 .required(false)
                 .value_parser(["brave", "chrome", "firefox"])
                 .num_args(1..),
@@ -82,6 +88,9 @@ pub fn cli() {
             )
             .exit();
     }
+    handle_matches(&matches)?;
+
+    Ok(())
 }
 
 fn verify_routine_count(matches: &ArgMatches) -> Result<(), ()> {
@@ -93,6 +102,69 @@ fn verify_routine_count(matches: &ArgMatches) -> Result<(), ()> {
     Ok(())
 }
 
-fn handle_matches(matches: &ArgMatches) -> io::Result<()> {
-    Ok(())
+fn handle_matches(matches: &ArgMatches) -> io::Result<CliOptions> {
+    let mut options = CliOptions::new();
+
+    let os = match std::env::consts::OS {
+        "linux" => SupportedOS::Linux,
+        "windows" => SupportedOS::Windows,
+        _ => {
+            exit(1);
+        }
+    };
+    options.supported_os = Some(os);
+
+    // repo option match
+    if let Some(gh_repository) = matches.get_one::<String>("github") {
+        // to-do: add URL check
+        options.github = Some(gh_repository.clone());
+    }
+    // browser options match
+    if let Some(browsers) = matches.get_many::<String>("browser") {
+        let mut selected_browsers: Vec<Browser> = Vec::new();
+        for browser in browsers {
+            match browser.as_str() {
+                "brave" => selected_browsers.push(SupportedBrowsers::Brave.get_browser()),
+                "firefox" => selected_browsers.push(SupportedBrowsers::Firefox.get_browser()),
+                "chrome" => selected_browsers.push(SupportedBrowsers::Chrome.get_browser()),
+                _ => {
+                    unreachable!("impossible to reach , the parsing is handled by clap parser")
+                }
+            }
+        }
+        options.browsers = selected_browsers;
+    }
+    // routine option match
+    if let Some(routine) = matches.get_one::<String>("routine") {
+        let count = matches.get_one::<u32>("count").copied().unwrap_or(1u32);
+
+        options.routine = match routine.as_str() {
+            "day" => Some(Routine::Day),
+            "week" => Some(Routine::Week),
+            "month" => Some(Routine::Month),
+            _ => unreachable!("impossible to reach , the parsing is handled by clap parser"),
+        };
+        options.routine_count = count;
+    }
+    // outputpath option match
+    if let Some(save_path) = matches.get_one::<String>("outputpath") {
+        let mut save_path = save_path.clone();
+        loop {
+            if check_path(&save_path) {
+                break;
+            } else {
+                // do we even have access to write in the directory?
+                // i only checked the existence
+                // to-do: check the write access
+                let save_path_input: String = Input::new()
+                    .with_prompt("The Save directory not found. please input a valid path")
+                    .interact()
+                    .unwrap();
+                save_path = save_path_input;
+            }
+        }
+        options.save_path = Some(save_path)
+    }
+    println!("{:?}", options);
+    Ok(options)
 }
