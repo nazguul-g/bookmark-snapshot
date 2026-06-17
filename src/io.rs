@@ -1,4 +1,8 @@
-use std::path::{Path, PathBuf};
+use std::{
+    path::{Path, PathBuf},
+};
+
+use crate::types::{Browser, CliOptions, SupportedOS};
 
 pub fn check_path(path: &str) -> bool {
     let path = Path::new(path);
@@ -7,3 +11,5 @@ pub fn check_path(path: &str) -> bool {
     }
     false
 }
+
+pub fn search_browsers(options: CliOptions) {}

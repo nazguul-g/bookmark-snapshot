@@ -1,10 +1,33 @@
-#[derive(Debug)]
+use std::collections::HashMap;
+
+#[derive(Debug, PartialEq, Eq)]
 pub struct Browser {
-    pub name: String,
-    pub bookmark_path: String,
+    pub name: SupportedBrowsers,
+    pub bookmark_path: HashMap<SupportedOS, String>,
     pub store_type: BookmarkStoreType,
 }
-#[derive(Debug)]
+impl Browser {
+    pub fn new(browser_name: SupportedBrowsers) -> Self {
+        match browser_name {
+            SupportedBrowsers::Brave => Browser {
+                name: browser_name,
+                bookmark_path: SupportedBrowsers::Brave.default_path(),
+                store_type: BookmarkStoreType::JSON,
+            },
+            SupportedBrowsers::Chrome => Browser {
+                name: browser_name,
+                bookmark_path: SupportedBrowsers::Chrome.default_path(),
+                store_type: BookmarkStoreType::JSON,
+            },
+            SupportedBrowsers::Firefox => Browser {
+                name: browser_name,
+                bookmark_path: SupportedBrowsers::Firefox.default_path(),
+                store_type: BookmarkStoreType::SQLite,
+            },
+        }
+    }
+}
+#[derive(Debug, PartialEq, Eq)]
 pub enum SupportedBrowsers {
     Brave,
     Chrome,
@@ -12,50 +35,50 @@ pub enum SupportedBrowsers {
 }
 impl SupportedBrowsers {
     pub fn all() -> Vec<Browser> {
-        let brave = Browser {
-            name: "brave".to_string(),
-            bookmark_path: String::new(),
-            store_type: BookmarkStoreType::JSON,
-        };
-        let firefox = Browser {
-            name: "firefox".to_string(),
-            bookmark_path: String::new(),
-            store_type: BookmarkStoreType::SQLite,
-        };
-        let chrome = Browser {
-            name: "chrome".to_string(),
-            bookmark_path: String::new(),
-            store_type: BookmarkStoreType::JSON,
-        };
+        let brave = Browser::new(SupportedBrowsers::Brave);
+        let firefox = Browser::new(SupportedBrowsers::Firefox);
+        let chrome = Browser::new(SupportedBrowsers::Chrome);
 
         vec![brave, firefox, chrome]
     }
-    pub fn get_browser(self) -> Browser {
+    fn default_path(&self) -> HashMap<SupportedOS, String> {
         match &self {
-            SupportedBrowsers::Brave => Browser {
-                name: "brave".to_string(),
-                bookmark_path: String::new(),
-                store_type: BookmarkStoreType::JSON,
-            },
-            SupportedBrowsers::Chrome => Browser {
-                name: "chrome".to_string(),
-                bookmark_path: String::new(),
-                store_type: BookmarkStoreType::JSON,
-            },
-            SupportedBrowsers::Firefox => Browser {
-                name: "firefox".to_string(),
-                bookmark_path: String::new(),
-                store_type: BookmarkStoreType::SQLite,
-            },
+            SupportedBrowsers::Chrome => {
+                let mut map: HashMap<SupportedOS, String> = HashMap::new();
+                map.insert(SupportedOS::Linux, ".config/google-chrome/".to_string());
+                map.insert(SupportedOS::Windows, r#"AppData\Local\"#.to_string());
+                map
+            }
+            SupportedBrowsers::Brave => {
+                let mut map: HashMap<SupportedOS, String> = HashMap::new();
+                map.insert(
+                    SupportedOS::Linux,
+                    ".config/BraveSoftware/Brave-Browser/".to_string(),
+                );
+                map.insert(
+                    SupportedOS::Windows,
+                    r#"\AppData\BraveSoftware\Brave-Browser\User Data\"#.to_string(),
+                );
+                map
+            }
+            SupportedBrowsers::Firefox => {
+                let mut map: HashMap<SupportedOS, String> = HashMap::new();
+                map.insert(SupportedOS::Linux, ".config/mozilla/firefox/".to_string());
+                map.insert(
+                    SupportedOS::Windows,
+                    r#"\AppData\Roaming\Mozilla\Firefox\Profiles\"#.to_string(),
+                );
+                map
+            }
         }
     }
 }
-#[derive(Debug)]
+#[derive(Debug, Hash, PartialEq, Eq)]
 pub enum BookmarkStoreType {
     JSON,
     SQLite,
 }
-#[derive(Debug)]
+#[derive(Debug, Hash, PartialEq, Eq)]
 pub enum SupportedOS {
     Windows,
     Linux,

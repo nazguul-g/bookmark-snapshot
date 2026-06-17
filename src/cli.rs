@@ -125,9 +125,9 @@ fn handle_matches(matches: &ArgMatches) -> io::Result<CliOptions> {
         let mut selected_browsers: Vec<Browser> = Vec::new();
         for browser in browsers {
             match browser.as_str() {
-                "brave" => selected_browsers.push(SupportedBrowsers::Brave.get_browser()),
-                "firefox" => selected_browsers.push(SupportedBrowsers::Firefox.get_browser()),
-                "chrome" => selected_browsers.push(SupportedBrowsers::Chrome.get_browser()),
+                "brave" => selected_browsers.push(Browser::new(SupportedBrowsers::Brave)),
+                "firefox" => selected_browsers.push(Browser::new(SupportedBrowsers::Firefox)),
+                "chrome" => selected_browsers.push(Browser::new(SupportedBrowsers::Chrome)),
                 _ => {
                     unreachable!("impossible to reach , the parsing is handled by clap parser")
                 }
