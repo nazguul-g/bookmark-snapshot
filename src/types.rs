@@ -1,33 +1,37 @@
 use std::collections::HashMap;
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq,Clone)]
 pub struct Browser {
     pub name: SupportedBrowsers,
-    pub bookmark_path: HashMap<SupportedOS, String>,
+    pub userdata_path: HashMap<SupportedOS, String>,
     pub store_type: BookmarkStoreType,
+    pub bookmark_path: Option<String>,
 }
 impl Browser {
     pub fn new(browser_name: SupportedBrowsers) -> Self {
         match browser_name {
             SupportedBrowsers::Brave => Browser {
                 name: browser_name,
-                bookmark_path: SupportedBrowsers::Brave.default_path(),
+                userdata_path: SupportedBrowsers::Brave.default_path(),
                 store_type: BookmarkStoreType::JSON,
+                bookmark_path: None,
             },
             SupportedBrowsers::Chrome => Browser {
                 name: browser_name,
-                bookmark_path: SupportedBrowsers::Chrome.default_path(),
+                userdata_path: SupportedBrowsers::Chrome.default_path(),
                 store_type: BookmarkStoreType::JSON,
+                bookmark_path: None,
             },
             SupportedBrowsers::Firefox => Browser {
                 name: browser_name,
-                bookmark_path: SupportedBrowsers::Firefox.default_path(),
+                userdata_path: SupportedBrowsers::Firefox.default_path(),
                 store_type: BookmarkStoreType::SQLite,
+                bookmark_path: None,
             },
         }
     }
 }
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq,Clone)]
 pub enum SupportedBrowsers {
     Brave,
     Chrome,
@@ -73,12 +77,13 @@ impl SupportedBrowsers {
         }
     }
 }
-#[derive(Debug, Hash, PartialEq, Eq)]
+#[derive(Debug, Hash, PartialEq, Eq,Clone)]
 pub enum BookmarkStoreType {
     JSON,
     SQLite,
 }
-#[derive(Debug, Hash, PartialEq, Eq)]
+
+#[derive(Debug, Hash, PartialEq, Eq,Clone)]
 pub enum SupportedOS {
     Windows,
     Linux,

@@ -7,7 +7,7 @@ use colored::Colorize;
 use dialoguer::Input;
 
 use crate::{
-    io::check_path,
+    io::{check_path, search_browsers},
     types::{Browser, CliOptions, Routine, SupportedBrowsers, SupportedOS},
 };
 
@@ -165,7 +165,8 @@ fn handle_matches(matches: &ArgMatches) -> io::Result<CliOptions> {
         }
         options.save_path = Some(save_path)
     }
-    println!("{:?}", options);
+    //println!("{:?}", options);
+    search_browsers(&options);
     Ok(options)
 }
 fn get_input(message: &str) -> String {
