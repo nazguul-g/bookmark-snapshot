@@ -1,6 +1,11 @@
 // Handle parsing CLI arguments
 
-use std::{fs::TryLockError::Error, io, process::exit};
+use std::{
+    fs::TryLockError::Error,
+    io,
+    path::{Path, PathBuf},
+    process::exit,
+};
 
 use clap::{Arg, ArgMatches, Command};
 use colored::Colorize;
@@ -175,4 +180,16 @@ fn get_input(message: &str) -> String {
         .interact()
         .unwrap();
     input
+}
+pub fn request_bookmark_path() -> PathBuf {
+    loop {
+        let path = get_input("please provide bookmark path: ");
+
+        if check_path(&path) {
+            let path = Path::new(&path);
+            return path.into();
+        } else {
+            continue;
+        }
+    }
 }

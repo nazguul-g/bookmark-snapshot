@@ -1,4 +1,6 @@
 use std::{
+    collections::HashMap,
+    f64::consts::E,
     io,
     path::{Path, PathBuf},
     process::exit,
@@ -6,7 +8,10 @@ use std::{
 
 use glob::glob;
 
-use crate::types::{BookmarkStoreType, Browser, CliOptions, SupportedBrowsers, SupportedOS};
+use crate::{
+    cli::request_bookmark_path,
+    types::{BookmarkStoreType, Browser, CliOptions, SupportedBrowsers, SupportedOS},
+};
 
 pub fn check_path(path: &str) -> bool {
     let path = Path::new(path);
@@ -34,7 +39,12 @@ pub fn search_browsers(options: &CliOptions) {
                     get_home_directory(),
                     browser.userdata_path.get(&SupportedOS::Linux).unwrap()
                 );
-                glob_search_bookmarks_linux(&pattern, browser.store_type);
+                let bookmark_path =
+                    if let Some(path) = glob_search_bookmarks_linux(&pattern, browser.store_type) {
+                        path
+                    } else {
+                        request_bookmark_path()
+                    };
             }
             Some(SupportedOS::Windows) => {
                 let pattern = browser.userdata_path.get(&SupportedOS::Windows).unwrap();
@@ -50,26 +60,35 @@ pub fn search_browsers(options: &CliOptions) {
 // the file is sqlite DB names "places.sqlite", the bookmark table is name "moz_bookmarks" which is a reference to another table named "moz_places".
 
 // The job now is to look for this two patterns using given browser userdata path
-fn glob_search_bookmarks_linux(pattern: &str, store_type: BookmarkStoreType) {
+fn glob_search_bookmarks_linux(pattern: &str, store_type: BookmarkStoreType) -> Option<PathBuf> {
     let mut pattern = pattern.to_string();
     match store_type {
-        BookmarkStoreType::JSON => {
-            pattern = format!("{}{}",pattern,"*/Bookmarks");
-        },
+        BookmarkStoreType::JSON => pattern = format!("{}{}", pattern, "*/Bookmarks"),
         BookmarkStoreType::SQLite => {
-            pattern = format!("{}{}",pattern,"*/places.sqlite");
-        },
-    }
+            pattern = format!("{}{}", pattern, "*/places.sqlite");
+        }
+    };
     match glob(&pattern) {
-            Ok(paths) => {
-                for entry in paths {
-                    match entry {
-                        Ok(path) => println!("Found bookmarks at: {}", path.display()),
-                        Err(e) => eprintln!("Error reading path: {:?}", e),
+        Ok(paths) => {
+            for entry in paths {
+                match entry {
+                    Ok(path) => {
+                        println!("Found bookmarks at: {}", path.display());
+                        return Some(path);
+                    }
+                    Err(e) => {
+                        eprintln!("Error reading path: {:?}", e);
+                        return None;
                     }
                 }
-            },
-            Err(e) => eprintln!("Failed to compile glob pattern: {}", e),
+            }
+            None
         }
+        Err(e) => {
+            eprintln!("Failed to compile glob pattern: {}", e);
+            exit(1)
+        }
+    }
 }
+
 fn glob_search_bookmarks_windows(pattern: &str) {}
