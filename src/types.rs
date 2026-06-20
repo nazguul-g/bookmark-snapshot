@@ -1,11 +1,11 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, fmt::Display, path::PathBuf};
 
-#[derive(Debug, PartialEq, Eq,Clone)]
+#[derive(Debug, PartialEq, Eq, Clone)]
 pub struct Browser {
     pub name: SupportedBrowsers,
-    pub userdata_path: HashMap<SupportedOS, String>,
+    pub userdata_path: HashMap<SupportedOSs, String>,
     pub store_type: BookmarkStoreType,
-    pub bookmark_path: Option<String>,
+    pub bookmark_path: Option<PathBuf>,
 }
 impl Browser {
     pub fn new(browser_name: SupportedBrowsers) -> Self {
@@ -31,7 +31,7 @@ impl Browser {
         }
     }
 }
-#[derive(Debug, PartialEq, Eq,Clone)]
+#[derive(Debug, PartialEq, Eq, Clone)]
 pub enum SupportedBrowsers {
     Brave,
     Chrome,
@@ -45,31 +45,31 @@ impl SupportedBrowsers {
 
         vec![brave, firefox, chrome]
     }
-    fn default_path(&self) -> HashMap<SupportedOS, String> {
+    fn default_path(&self) -> HashMap<SupportedOSs, String> {
         match &self {
             SupportedBrowsers::Chrome => {
-                let mut map: HashMap<SupportedOS, String> = HashMap::new();
-                map.insert(SupportedOS::Linux, ".config/google-chrome/".to_string());
-                map.insert(SupportedOS::Windows, r#"AppData\Local\"#.to_string());
+                let mut map: HashMap<SupportedOSs, String> = HashMap::new();
+                map.insert(SupportedOSs::Linux, ".config/google-chrome/".to_string());
+                map.insert(SupportedOSs::Windows, r#"AppData\Local\"#.to_string());
                 map
             }
             SupportedBrowsers::Brave => {
-                let mut map: HashMap<SupportedOS, String> = HashMap::new();
+                let mut map: HashMap<SupportedOSs, String> = HashMap::new();
                 map.insert(
-                    SupportedOS::Linux,
+                    SupportedOSs::Linux,
                     ".config/BraveSoftware/Brave-Browser/".to_string(),
                 );
                 map.insert(
-                    SupportedOS::Windows,
+                    SupportedOSs::Windows,
                     r#"\AppData\BraveSoftware\Brave-Browser\User Data\"#.to_string(),
                 );
                 map
             }
             SupportedBrowsers::Firefox => {
-                let mut map: HashMap<SupportedOS, String> = HashMap::new();
-                map.insert(SupportedOS::Linux, ".config/mozilla/firefox/".to_string());
+                let mut map: HashMap<SupportedOSs, String> = HashMap::new();
+                map.insert(SupportedOSs::Linux, ".config/mozilla/firefox/".to_string());
                 map.insert(
-                    SupportedOS::Windows,
+                    SupportedOSs::Windows,
                     r#"\AppData\Roaming\Mozilla\Firefox\Profiles\"#.to_string(),
                 );
                 map
@@ -77,14 +77,23 @@ impl SupportedBrowsers {
         }
     }
 }
-#[derive(Debug, Hash, PartialEq, Eq,Clone)]
+impl Display for SupportedBrowsers {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Brave => write!(f, "brave"),
+            Self::Chrome => write!(f, "chrome"),
+            Self::Firefox => write!(f, "firefox"),
+        }
+    }
+}
+#[derive(Debug, Hash, PartialEq, Eq, Clone)]
 pub enum BookmarkStoreType {
     JSON,
     SQLite,
 }
 
-#[derive(Debug, Hash, PartialEq, Eq,Clone)]
-pub enum SupportedOS {
+#[derive(Debug, Hash, PartialEq, Eq, Clone)]
+pub enum SupportedOSs {
     Windows,
     Linux,
 }
@@ -102,7 +111,7 @@ pub struct CliOptions {
     pub routine: Option<Routine>,
     pub save_path: Option<String>,
     pub routine_count: u32,
-    pub supported_os: Option<SupportedOS>,
+    pub supported_os: Option<SupportedOSs>,
 }
 impl CliOptions {
     pub fn new() -> Self {

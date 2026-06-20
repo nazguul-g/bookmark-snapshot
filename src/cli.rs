@@ -12,8 +12,8 @@ use colored::Colorize;
 use dialoguer::Input;
 
 use crate::{
-    io::{check_path, search_browsers},
-    types::{Browser, CliOptions, Routine, SupportedBrowsers, SupportedOS},
+    io::{check_path, get_input, search_browsers},
+    types::{Browser, CliOptions, Routine, SupportedBrowsers, SupportedOSs},
 };
 
 // Unless user specified the path, we use predefined paths for system to search.
@@ -112,8 +112,8 @@ fn handle_matches(matches: &ArgMatches) -> io::Result<CliOptions> {
     let mut options = CliOptions::new();
 
     let os = match std::env::consts::OS {
-        "linux" => SupportedOS::Linux,
-        "windows" => SupportedOS::Windows,
+        "linux" => SupportedOSs::Linux,
+        "windows" => SupportedOSs::Windows,
         _ => {
             exit(1);
         }
@@ -171,25 +171,7 @@ fn handle_matches(matches: &ArgMatches) -> io::Result<CliOptions> {
         options.save_path = Some(save_path)
     }
     //println!("{:?}", options);
-    search_browsers(&options);
+    search_browsers(&mut options);
     Ok(options)
 }
-fn get_input(message: &str) -> String {
-    let input: String = Input::new()
-        .with_prompt(format!("{}", message.on_bright_red()))
-        .interact()
-        .unwrap();
-    input
-}
-pub fn request_bookmark_path() -> PathBuf {
-    loop {
-        let path = get_input("please provide bookmark path: ");
 
-        if check_path(&path) {
-            let path = Path::new(&path);
-            return path.into();
-        } else {
-            continue;
-        }
-    }
-}
