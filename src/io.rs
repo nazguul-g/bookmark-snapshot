@@ -1,10 +1,5 @@
 use std::{
-    collections::HashMap,
-    env::home_dir,
-    f64::consts::E,
-    io,
-    path::{Path, PathBuf},
-    process::exit,
+    collections::HashMap, env::home_dir, error::Error, f64::consts::E, fs::OpenOptions, io::{self, BufReader}, path::{Path, PathBuf}, process::exit
 };
 
 use colored::Colorize;
@@ -41,16 +36,14 @@ pub fn search_browsers(options: &mut CliOptions) {
             None => unreachable!(),
         };
         match bookmark_path {
-            Some(path) => {
-                b.bookmark_path = Some(path)
-            }
+            Some(path) => b.bookmark_path = Some(path),
             None => {
                 todo!()
             }
         }
     }
-    options.browsers  = browsers;
-    println!("{:?}",options.browsers);
+    options.browsers = browsers;
+    println!("{:?}", options.browsers);
 }
 
 // For chromium based browsers, the pattern is "Bookmark" without any extension.
@@ -131,4 +124,26 @@ fn pattern_builder_linux(userdata: &str, store_type: BookmarkStoreType) -> Strin
     };
     println!("{pattern}");
     pattern
+}
+
+fn save_config(options: &CliOptions) -> io::Result<()> {
+    // config file name is "bookmarks_snapshot.json"
+    // if exists , look if its have same structure
+    // if not prompt user or quite the app with error
+    let options = options.clone();
+    let file= OpenOptions::new().create(true).write(true).open(options.save_path.unwrap());
+    Ok(())
+}
+// if dir exits return Error
+fn new_dir(path: &str) -> io::Result<()> {
+    std::fs::create_dir(&path)
+}
+
+fn check_file(path: &str) -> Result<CliOptions, Box<dyn Error>> {
+    let file = OpenOptions::new().read(true).open(path)?;
+    let mut reader = BufReader::new(file);
+    
+    let options = serde_json::from_reader(&mut reader)?; 
+    
+    Ok(options)
 }
