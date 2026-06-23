@@ -16,6 +16,7 @@ use crate::{
         browsers::{check_path, get_input, search_browsers},
         config::save_config,
     },
+    parser::chromium::chromium_parser,
     types::{Browser, CliOptions, Routine, SupportedBrowsers, SupportedOSs},
 };
 
@@ -173,7 +174,11 @@ fn handle_matches(matches: &ArgMatches) -> io::Result<CliOptions> {
         }
         options.save_path = Some(save_path)
     }
+
     //println!("{:?}", options);
     search_browsers(&mut options);
+    for browser in &options.browsers {
+        chromium_parser(&browser);
+    }
     Ok(options)
 }

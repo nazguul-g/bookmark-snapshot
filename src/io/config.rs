@@ -31,8 +31,9 @@ pub fn save_config(cli_options: &CliOptions) -> Result<(),Box<dyn Error>>{
     serde_json::to_writer_pretty(writer, &options);
     Ok(())
 }
-pub fn get_config(path: &str) -> Result<CliOptions, Box<dyn Error>> {
-    if !check_path(path) {
+pub fn get_config() -> Result<CliOptions, Box<dyn Error>> {
+    let path= format!("{}/{}options_config.json",get_home_directory(),LINUX_CONFIG_PATH);
+    if !check_path(&path) {
         return Err(Box::new(io::Error::new(
             NotFound,
             "config directory not found",

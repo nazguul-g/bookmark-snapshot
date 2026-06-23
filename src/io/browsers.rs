@@ -43,7 +43,6 @@ pub fn search_browsers(options: &mut CliOptions) {
         }
     }
     options.browsers = browsers;
-    println!("{:?}", options.browsers);
 }
 
 // For chromium based browsers, the pattern is "Bookmark" without any extension.
