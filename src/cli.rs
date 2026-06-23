@@ -15,9 +15,7 @@ use crate::{
     io::{
         browsers::{check_path, get_input, search_browsers},
         config::save_config,
-    },
-    parser::chromium::chromium_parser,
-    types::{Browser, CliOptions, Routine, SupportedBrowsers, SupportedOSs},
+    }, parser::{chromium::chromium_parser, gecko::gecko_parser}, types::{Browser, CliOptions, Routine, SupportedBrowsers, SupportedOSs},
 };
 
 // Unless user specified the path, we use predefined paths for system to search.
@@ -177,8 +175,13 @@ fn handle_matches(matches: &ArgMatches) -> io::Result<CliOptions> {
 
     //println!("{:?}", options);
     search_browsers(&mut options);
-    for browser in &options.browsers {
-        chromium_parser(&browser);
+    save_config(&options).unwrap();
+    for b in &options.browsers  {
+        match b.name {
+            SupportedBrowsers::Brave=>chromium_parser(b).unwrap(),
+            SupportedBrowsers::Chrome=>chromium_parser(b).unwrap(),
+            SupportedBrowsers::Firefox=>gecko_parser()
+    }
     }
     Ok(options)
 }

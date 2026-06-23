@@ -58,7 +58,7 @@ fn glob_search_bookmarks_linux(browser: &mut Browser) -> Option<PathBuf> {
             for entry in paths {
                 match entry {
                     Ok(path) => {
-                        println!("found bookmark at {}", path.display());
+                        //println!("found bookmark at {}", path.display());
                         return Some(path);
                     }
                     Err(e) => {
@@ -113,6 +113,6 @@ fn pattern_builder_linux(userdata: &str, store_type: &BookmarkStoreType) -> Stri
             format!("{}/{}*/{}", get_home_directory(), userdata, "places.sqlite")
         }
     };
-    println!("{pattern}");
+    //println!("{pattern}");
     pattern
 }
