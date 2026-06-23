@@ -1,6 +1,7 @@
 use std::{collections::HashMap, fmt::Display, path::PathBuf};
+use schemars::JsonSchema;
 use serde::{Serialize, Deserialize};
-#[derive(Debug, PartialEq, Eq, Clone,Serialize,Deserialize)]
+#[derive(Debug, PartialEq, Eq, Clone,Serialize,Deserialize,JsonSchema )]
 pub struct Browser {
     pub name: SupportedBrowsers,
     pub userdata_path: HashMap<SupportedOSs, String>,
@@ -31,7 +32,7 @@ impl Browser {
         }
     }
 }
-#[derive(Debug, PartialEq, Eq, Clone,Serialize,Deserialize)]
+#[derive(Debug, PartialEq, Eq, Clone,Serialize,Deserialize,JsonSchema)]
 pub enum SupportedBrowsers {
     Brave,
     Chrome,
@@ -86,25 +87,25 @@ impl Display for SupportedBrowsers {
         }
     }
 }
-#[derive(Debug, Hash, PartialEq, Eq, Clone,Serialize,Deserialize)]
+#[derive(Debug, Hash, PartialEq, Eq, Clone,Serialize,Deserialize,JsonSchema )]
 pub enum BookmarkStoreType {
     JSON,
     SQLite,
 }
 
-#[derive(Debug, Hash, PartialEq, Eq, Clone,Serialize,Deserialize)]
+#[derive(Debug, Hash, PartialEq, Eq, Clone,Serialize,Deserialize,JsonSchema )]
 pub enum SupportedOSs {
     Windows,
     Linux,
 }
-#[derive(Debug,Clone,Serialize,Deserialize)]
+#[derive(Debug,Clone,Serialize,Deserialize,JsonSchema )]
 pub enum Routine {
     Day,
     Week,
     Month,
 }
 
-#[derive(Debug,Clone,Serialize,Deserialize )]
+#[derive(Debug,Clone,Serialize,Deserialize,JsonSchema )]
 pub struct CliOptions {
     pub github: Option<String>,
     pub browsers: Vec<Browser>,
@@ -121,6 +122,7 @@ impl CliOptions {
             // support them all in if user didn't specify
             browsers: SupportedBrowsers::all(),
             routine: None,
+            // default save path
             save_path: None,
             routine_count: 1,
             supported_os: None,

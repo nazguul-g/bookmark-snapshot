@@ -12,7 +12,10 @@ use colored::Colorize;
 use dialoguer::Input;
 
 use crate::{
-    io::{check_path, get_input, search_browsers},
+    io::{
+        browsers::{check_path, get_input, search_browsers},
+        config::save_config,
+    },
     types::{Browser, CliOptions, Routine, SupportedBrowsers, SupportedOSs},
 };
 
@@ -174,4 +177,3 @@ fn handle_matches(matches: &ArgMatches) -> io::Result<CliOptions> {
     search_browsers(&mut options);
     Ok(options)
 }
-

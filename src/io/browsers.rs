@@ -1,6 +1,6 @@
-use std::{
-    collections::HashMap, env::home_dir, error::Error, f64::consts::E, fs::OpenOptions, io::{self, BufReader}, path::{Path, PathBuf}, process::exit
-};
+
+
+use std::{path::{Path, PathBuf}, process::exit};
 
 use colored::Colorize;
 use dialoguer::{Input, Select};
@@ -15,7 +15,7 @@ pub fn check_path(path: &str) -> bool {
     }
     false
 }
-fn get_home_directory() -> String {
+pub fn get_home_directory() -> String {
     match std::env::var("HOME") {
         Ok(home) => home,
         Err(_) => {
@@ -52,16 +52,8 @@ pub fn search_browsers(options: &mut CliOptions) {
 
 // The job now is to look for this two patterns using given browser userdata path
 fn glob_search_bookmarks_linux(browser: &mut Browser) -> Option<PathBuf> {
-    let pattern = match browser.store_type {
-        BookmarkStoreType::JSON => pattern_builder_linux(
-            browser.userdata_path.get(&SupportedOSs::Linux).unwrap(),
-            BookmarkStoreType::JSON,
-        ),
-        BookmarkStoreType::SQLite => pattern_builder_linux(
-            browser.userdata_path.get(&SupportedOSs::Linux).unwrap(),
-            BookmarkStoreType::SQLite,
-        ),
-    };
+
+    let pattern = pattern_builder_linux(browser.userdata_path.get(&SupportedOSs::Linux).unwrap(), &browser.store_type);
     match glob(&pattern) {
         Ok(paths) => {
             for entry in paths {
@@ -113,7 +105,7 @@ pub fn request_path(name: &SupportedBrowsers) -> String {
     }
 }
 fn glob_search_bookmarks_windows(pattern: &str) {}
-fn pattern_builder_linux(userdata: &str, store_type: BookmarkStoreType) -> String {
+fn pattern_builder_linux(userdata: &str, store_type: &BookmarkStoreType) -> String {
     let pattern = match store_type {
         BookmarkStoreType::JSON => {
             format!("{}/{}*/{}", get_home_directory(), userdata, "Bookmarks")
@@ -124,26 +116,4 @@ fn pattern_builder_linux(userdata: &str, store_type: BookmarkStoreType) -> Strin
     };
     println!("{pattern}");
     pattern
-}
-
-fn save_config(options: &CliOptions) -> io::Result<()> {
-    // config file name is "bookmarks_snapshot.json"
-    // if exists , look if its have same structure
-    // if not prompt user or quite the app with error
-    let options = options.clone();
-    let file= OpenOptions::new().create(true).write(true).open(options.save_path.unwrap());
-    Ok(())
-}
-// if dir exits return Error
-fn new_dir(path: &str) -> io::Result<()> {
-    std::fs::create_dir(&path)
-}
-
-fn check_file(path: &str) -> Result<CliOptions, Box<dyn Error>> {
-    let file = OpenOptions::new().read(true).open(path)?;
-    let mut reader = BufReader::new(file);
-    
-    let options = serde_json::from_reader(&mut reader)?; 
-    
-    Ok(options)
 }
