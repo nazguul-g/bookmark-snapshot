@@ -86,3 +86,4 @@ fn write_file(path: &Path) -> Result<BufWriter<File>, Box<dyn Error>> {
     let writer = BufWriter::new(file);
     Ok(writer)
 }
+ 
