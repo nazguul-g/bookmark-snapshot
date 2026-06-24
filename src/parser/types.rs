@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
 // 1. The top-level root of the JSON file
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize,Hash)]
 pub struct ChromiumBookmarks {
     pub checksum: String,
     pub roots: BookmarkRoots,
@@ -10,7 +10,7 @@ pub struct ChromiumBookmarks {
 }
 
 // 2. The roots object contains these exact three entry points
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize,Hash)]
 pub struct BookmarkRoots {
     pub bookmark_bar: BookmarkNode,
     pub other: BookmarkNode,
@@ -19,7 +19,7 @@ pub struct BookmarkRoots {
 
 // 3. This is the core recursive structure. 
 // Both folders and bookmarks use this exact same struct shape.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize,Hash)]
 pub struct BookmarkNode {
     pub id: String,
     pub name: String,
@@ -40,7 +40,7 @@ pub struct BookmarkNode {
     pub date_modified: Option<String>, // Usually only on folders
 }
 
-#[derive(Debug, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Serialize, Deserialize, PartialEq,Hash)]
 #[serde(rename_all = "lowercase")]
 pub enum NodeType {
     Url,

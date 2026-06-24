@@ -1,7 +1,10 @@
 use std::{
     error::Error,
     fs::{self, OpenOptions},
-    io::{self, BufReader, BufWriter, ErrorKind::NotFound},
+    io::{
+        self, BufReader, BufWriter,
+        ErrorKind::{self, NotFound},
+    },
 };
 
 use schemars::Schema;
@@ -31,6 +34,7 @@ pub fn save_config_linux(cli_options: &CliOptions) -> Result<(), Box<dyn Error>>
         .open(format!("{}{}", config_path, config_file_name))?;
     let writer = BufWriter::new(file);
     serde_json::to_writer_pretty(writer, &options);
+    println!("config saved to: '{}'", config_path);
     Ok(())
 }
 pub fn save_config_windows(cli_options: &CliOptions) -> Result<(), Box<dyn Error>> {
@@ -65,6 +69,12 @@ pub fn get_config_linux() -> Result<CliOptions, Box<dyn Error>> {
             )));
         }
     }
+}
+pub fn get_config_windows() -> Result<CliOptions, Box<dyn Error>> {
+    Err(Box::new(io::Error::new(
+        ErrorKind::Unsupported,
+        "function still not implemented",
+    )))
 }
 // we must validate schema is identical as well
 // config might exist but what about the schema

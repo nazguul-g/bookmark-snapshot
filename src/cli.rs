@@ -16,7 +16,6 @@ use crate::{
         browsers::{check_path, get_input, search_browsers},
         config::{save_config_linux, save_config_windows},
     },
-    parser::{chromium::chromium_parser, gecko::gecko_parser},
     types::{Browser, CliOptions, Routine, SupportedBrowsers, SupportedOSs},
 };
 

@@ -2,10 +2,11 @@
 #[derive(Serialize, Deserialize)]
 pub struct JSONBookmarkSchema {}
 use std::{
+    collections::HashMap,
     error::Error,
     fs::{File, OpenOptions, create_dir_all},
-    io::{self, BufReader, BufWriter},
-    path,
+    io::{self, BufReader, BufWriter, ErrorKind},
+    path::{self, Path},
     time::{SystemTime, UNIX_EPOCH},
 };
 
@@ -14,37 +15,50 @@ use serde::{Deserialize, Serialize};
 use crate::{
     io::{
         browsers::{check_path, get_home_directory, get_input},
-        config::get_config_linux,
+        config::{get_config_linux, get_config_windows},
     },
     parser::types::ChromiumBookmarks,
-    types::Browser,
+    types::{BookmarkStoreType, Browser, CliOptions, SupportedOSs},
 };
-pub fn chromium_parser(browser: &Browser) -> Result<(), Box<dyn Error>> {
-    let options = get_config_linux()?;
-    println!("{:?}",options);
-    let output_directory = match options.save_path {
-        None => {
-            let path = format!(
-                "{}/Documents/Bookmark-Snapshots/{}",
-                get_home_directory(),
-                browser.name
-            );
-            println!("{path}");
-            path
-        }
-        Some(path) => format!("{}/Bookmark-Snapshots/{}", path, browser.name),
-    };
+pub fn snapshot() -> Result<(), Box<dyn Error>> {
+    let os = std::env::consts::OS;
 
-    create_dir_all(&output_directory)?;
-    let bookmark_path = browser.bookmark_path.clone().unwrap();
-    let file_path = format!("{}/{}", output_directory, generate_name(&browser));
-    let reader = read_file(bookmark_path.to_str().unwrap())?;
-    let bookmarks: ChromiumBookmarks = serde_json::from_reader(reader)?;
-    let writer = write_file(&file_path)?;
-    println!("bookmarks snapshoted, at {}", file_path);
-    serde_json::to_writer_pretty(writer, &bookmarks)?;
+    let config = match os {
+        "linux" => get_config_linux()?,
+        "windows" => get_config_windows()?,
+        _ => {
+            return Err(Box::new(io::Error::new(
+                ErrorKind::Unsupported,
+                "operating system not supported",
+            )));
+        }
+    };
+    let save_path = config.save_path.clone().unwrap();
+    for b in &config.browsers {
+        match b.store_type {
+            BookmarkStoreType::JSON => json_parser(b, &save_path)?,
+            BookmarkStoreType::SQLite => sqlite_parser(b, &save_path)?,
+        }
+    }
     Ok(())
 }
+fn json_parser(browser: &Browser, save_directory: &str) -> Result<(), Box<dyn Error>> {
+    let browser = browser.clone();
+
+    let bookmark_path = browser.bookmark_path.clone().unwrap();
+    let reader = read_file(&bookmark_path.to_str().unwrap())?;
+    let bookmarks_parsed: ChromiumBookmarks = serde_json::from_reader(reader)?;
+    let path = Path::new(&save_directory).join(&generate_name(&browser));
+    let directory = create_dir_all(&path)?;
+    let writer = write_file(&path)?;
+    serde_json::to_writer_pretty(writer, &bookmarks_parsed)?;
+
+    Ok(())
+}
+fn sqlite_parser(browser: &Browser, save_directory: &str) -> Result<(), Box<dyn Error>> {
+    Ok(())
+}
+
 fn generate_name(browser: &Browser) -> String {
     let timestamp = SystemTime::now()
         .duration_since(UNIX_EPOCH)
@@ -59,13 +73,7 @@ fn read_file(path: &str) -> Result<BufReader<File>, Box<dyn Error>> {
     Ok(reader)
 }
 // assuming file not exists
-fn write_file(path: &str) -> Result<BufWriter<File>, Box<dyn Error>> {
-    if check_path(path) {
-        return Err(Box::new(io::Error::new(
-            io::ErrorKind::AlreadyExists,
-            "file already exists",
-        )));
-    }
+fn write_file(path: &Path) -> Result<BufWriter<File>, Box<dyn Error>> {
     let file = OpenOptions::new().write(true).create(true).open(path)?;
     let writer = BufWriter::new(file);
     Ok(writer)
