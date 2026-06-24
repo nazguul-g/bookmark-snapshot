@@ -1,5 +1,7 @@
 use std::{
-    error::Error, fs::{self, OpenOptions}, io::{self, BufReader, BufWriter, ErrorKind::NotFound},
+    error::Error,
+    fs::{self, OpenOptions},
+    io::{self, BufReader, BufWriter, ErrorKind::NotFound},
 };
 
 use schemars::Schema;
@@ -12,7 +14,7 @@ use crate::{
 fn create_dir(path: &str) -> io::Result<()> {
     fs::create_dir_all(path)
 }
-pub fn save_config(cli_options: &CliOptions) -> Result<(),Box<dyn Error>>{
+pub fn save_config_linux(cli_options: &CliOptions) -> Result<(), Box<dyn Error>> {
     let options = cli_options.clone();
     let config_file_name = "options_config.json";
     let os = options.supported_os.as_ref().unwrap();
@@ -31,8 +33,15 @@ pub fn save_config(cli_options: &CliOptions) -> Result<(),Box<dyn Error>>{
     serde_json::to_writer_pretty(writer, &options);
     Ok(())
 }
-pub fn get_config() -> Result<CliOptions, Box<dyn Error>> {
-    let path= format!("{}/{}options_config.json",get_home_directory(),LINUX_CONFIG_PATH);
+pub fn save_config_windows(cli_options: &CliOptions) -> Result<(), Box<dyn Error>> {
+    Ok(())
+}
+pub fn get_config_linux() -> Result<CliOptions, Box<dyn Error>> {
+    let path = format!(
+        "{}/{}options_config.json",
+        get_home_directory(),
+        LINUX_CONFIG_PATH
+    );
     if !check_path(&path) {
         return Err(Box::new(io::Error::new(
             NotFound,

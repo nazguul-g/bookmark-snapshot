@@ -1,6 +1,8 @@
-
-
-use std::{path::{Path, PathBuf}, process::exit};
+use std::{
+    error::Error,
+    path::{Path, PathBuf},
+    process::exit,
+};
 
 use colored::Colorize;
 use dialoguer::{Input, Select};
@@ -24,9 +26,10 @@ pub fn get_home_directory() -> String {
         }
     }
 }
-pub fn search_browsers(options: &mut CliOptions) {
+pub fn search_browsers(options: &CliOptions) -> Result<CliOptions, Box<dyn Error>> {
     // check using the default paths
     // prompt user if not found any bookmarks
+
     let mut browsers = options.browsers.clone();
 
     for b in browsers.iter_mut() {
@@ -42,7 +45,9 @@ pub fn search_browsers(options: &mut CliOptions) {
             }
         }
     }
+    let mut options = options.clone();
     options.browsers = browsers;
+    Ok(options)
 }
 
 // For chromium based browsers, the pattern is "Bookmark" without any extension.
@@ -51,8 +56,10 @@ pub fn search_browsers(options: &mut CliOptions) {
 
 // The job now is to look for this two patterns using given browser userdata path
 fn glob_search_bookmarks_linux(browser: &mut Browser) -> Option<PathBuf> {
-
-    let pattern = pattern_builder_linux(browser.userdata_path.get(&SupportedOSs::Linux).unwrap(), &browser.store_type);
+    let pattern = pattern_builder_linux(
+        browser.userdata_path.get(&SupportedOSs::Linux).unwrap(),
+        &browser.store_type,
+    );
     match glob(&pattern) {
         Ok(paths) => {
             for entry in paths {

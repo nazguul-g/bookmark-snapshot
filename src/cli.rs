@@ -1,7 +1,7 @@
 // Handle parsing CLI arguments
 
 use std::{
-    fs::TryLockError::Error,
+    error::Error,
     io,
     path::{Path, PathBuf},
     process::exit,
@@ -14,7 +14,7 @@ use dialoguer::Input;
 use crate::{
     io::{
         browsers::{check_path, get_input, search_browsers},
-        config::save_config,
+        config::{save_config_linux, save_config_windows},
     },
     parser::{chromium::chromium_parser, gecko::gecko_parser},
     types::{Browser, CliOptions, Routine, SupportedBrowsers, SupportedOSs},
@@ -38,7 +38,7 @@ future commands :
 */
 
 // due to luck of documentation about clap derive, decided to use clap builder instead
-pub fn cli() -> io::Result<()> {
+pub fn cli() -> Result<(), Box<dyn Error>> {
     let matches = Command::new("Bookmarks snapshot")
         .about("Automaticlly save browser booksmarks")
         .version("1.0-alpha")
@@ -112,7 +112,7 @@ fn verify_routine_count(matches: &ArgMatches) -> Result<(), ()> {
     Ok(())
 }
 
-fn handle_matches(matches: &ArgMatches) -> io::Result<CliOptions> {
+fn handle_matches(matches: &ArgMatches) -> Result<(), Box<dyn Error>> {
     let mut options = CliOptions::new();
 
     let os = match std::env::consts::OS {
@@ -176,14 +176,20 @@ fn handle_matches(matches: &ArgMatches) -> io::Result<CliOptions> {
     }
 
     //println!("{:?}", options);
-    search_browsers(&mut options);
-    save_config(&options).unwrap();
-    for b in &options.browsers {
-        match b.name {
-            SupportedBrowsers::Brave => chromium_parser(b).unwrap(),
-            SupportedBrowsers::Chrome => chromium_parser(b).unwrap(),
-            SupportedBrowsers::Firefox => gecko_parser(),
+    let config = if let Ok(config) = search_browsers(&options) {
+        config
+    } else {
+        eprint!("Error while searching for browsers paths");
+        exit(1)
+    };
+    match config.supported_os {
+        Some(SupportedOSs::Linux) => save_config_linux(&config),
+        Some(SupportedOSs::Windows) => save_config_windows(&config),
+        _ => {
+            eprintln!("operating os not supported");
+            exit(1)
         }
-    }
-    Ok(options)
+    };
+
+    Ok(())
 }
