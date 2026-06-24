@@ -16,6 +16,7 @@ use crate::{
         browsers::{check_path, get_input, search_browsers},
         config::{save_config_linux, save_config_windows},
     },
+    parser::chromium::snapshot,
     types::{Browser, CliOptions, Routine, SupportedBrowsers, SupportedOSs},
 };
 
@@ -189,6 +190,7 @@ fn handle_matches(matches: &ArgMatches) -> Result<(), Box<dyn Error>> {
             exit(1)
         }
     };
+    snapshot()?;
 
     Ok(())
 }

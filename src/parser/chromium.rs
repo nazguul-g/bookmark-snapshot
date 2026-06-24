@@ -33,7 +33,8 @@ pub fn snapshot() -> Result<(), Box<dyn Error>> {
             )));
         }
     };
-    let save_path = config.save_path.clone().unwrap();
+    let save_path = config.save_path.unwrap();
+    // exclusive to linux . windows default fallback not covered
     for b in &config.browsers {
         match b.store_type {
             BookmarkStoreType::JSON => json_parser(b, &save_path)?,
@@ -48,10 +49,17 @@ fn json_parser(browser: &Browser, save_directory: &str) -> Result<(), Box<dyn Er
     let bookmark_path = browser.bookmark_path.clone().unwrap();
     let reader = read_file(&bookmark_path.to_str().unwrap())?;
     let bookmarks_parsed: ChromiumBookmarks = serde_json::from_reader(reader)?;
-    let path = Path::new(&save_directory).join(&generate_name(&browser));
+    let path = Path::new(&save_directory)
+        .join("Bookmarks Snapshots")
+        .join(browser.name.to_string());
     let directory = create_dir_all(&path)?;
-    let writer = write_file(&path)?;
+    let writer = write_file(&path.join(&generate_name(&browser)))?;
     serde_json::to_writer_pretty(writer, &bookmarks_parsed)?;
+    println!(
+        "{} bookmark snapshot saved at: '{}'",
+        browser.name,
+        path.display()
+    );
 
     Ok(())
 }
@@ -64,7 +72,7 @@ fn generate_name(browser: &Browser) -> String {
         .duration_since(UNIX_EPOCH)
         .expect("time went backwards")
         .as_secs();
-    let file_name = format!("{}_snapshot_{}.json", browser.name, timestamp);
+    let file_name = format!("{}_snapshot{}.json", browser.name, timestamp);
     file_name
 }
 fn read_file(path: &str) -> Result<BufReader<File>, Box<dyn Error>> {

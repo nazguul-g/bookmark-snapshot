@@ -18,7 +18,15 @@ fn create_dir(path: &str) -> io::Result<()> {
     fs::create_dir_all(path)
 }
 pub fn save_config_linux(cli_options: &CliOptions) -> Result<(), Box<dyn Error>> {
-    let options = cli_options.clone();
+    let mut options = cli_options.clone();
+    let save_path = if let Some(path) = options.save_path {
+        path
+    } else {
+        let path = format!("{}/Documents", get_home_directory());
+        path
+    };
+    options.save_path = Some(save_path);
+    
     let config_file_name = "options_config.json";
     let os = options.supported_os.as_ref().unwrap();
     let config_path = match os {
@@ -31,6 +39,7 @@ pub fn save_config_linux(cli_options: &CliOptions) -> Result<(), Box<dyn Error>>
     let file = OpenOptions::new()
         .write(true)
         .create(true)
+        .truncate(true) //this fucking function , yes.... a 4 hour headache to me
         .open(format!("{}{}", config_path, config_file_name))?;
     let writer = BufWriter::new(file);
     serde_json::to_writer_pretty(writer, &options);
@@ -52,11 +61,7 @@ pub fn get_config_linux() -> Result<CliOptions, Box<dyn Error>> {
             "config directory not found",
         )));
     }
-    let file = OpenOptions::new()
-        .read(true)
-        .truncate(false)
-        .write(false)
-        .open(path)?;
+    let file = OpenOptions::new().read(true).open(path)?;
     let reader = BufReader::new(file);
     let options: CliOptions = serde_json::from_reader(reader)?;
     // extra validation schema validation is already done with deserializing
