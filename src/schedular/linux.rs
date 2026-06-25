@@ -85,6 +85,7 @@ pub fn schedule() -> std::io::Result<()> {
 
     write!(timer_writer, "{}", timer_unit)?;
     write!(service_writer, "{}", service_unit)?;
+    
     println!("snapshot routine scheduled successfully");
     Ok(())
 }

@@ -17,6 +17,7 @@ use crate::{
         config::{save_config_linux, save_config_windows},
     },
     parser::chromium::snapshot,
+    schedular::linux::schedule,
     types::{Browser, CliOptions, Routine, SupportedBrowsers, SupportedOSs},
 };
 
@@ -191,6 +192,6 @@ fn handle_matches(matches: &ArgMatches) -> Result<(), Box<dyn Error>> {
         }
     };
     snapshot()?;
-
+    schedule()?;
     Ok(())
 }
