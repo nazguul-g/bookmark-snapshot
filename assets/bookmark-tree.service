@@ -1,0 +1,7 @@
+[Unit]
+Description=Bookmark Tree Snapshot
+Wants=network-online.target
+After=network-online.target
+[Service]
+Type=oneshot
+ExecStart=/mnt/workspace/Projects/bookmark-tree/target/debug/bookmark-tree --outputpath /mnt/downloads

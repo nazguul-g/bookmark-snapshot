@@ -6,6 +6,7 @@ mod cli;
 mod io;
 mod types;
 mod parser;
+mod schedular;
 
 fn main() {
     cli();
