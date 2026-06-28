@@ -107,7 +107,6 @@ pub enum Routine {
 
 #[derive(Debug,Clone,Serialize,Deserialize,JsonSchema )]
 pub struct CliOptions {
-    pub github: Option<String>,
     pub browsers: Vec<Browser>,
     pub routine: Option<Routine>,
     pub save_path: Option<String>,
@@ -118,7 +117,6 @@ impl CliOptions {
     pub fn new() -> Self {
         // all options are off
         CliOptions {
-            github: None,
             // support them all in if user didn't specify
             browsers: SupportedBrowsers::all(),
             routine: None,

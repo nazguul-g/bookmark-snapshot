@@ -34,7 +34,7 @@ pub fn search_browsers(options: &CliOptions) -> Result<CliOptions, Box<dyn Error
 
     for b in browsers.iter_mut() {
         let bookmark_path = match options.supported_os {
-            Some(SupportedOSs::Linux) => glob_search_bookmarks_linux(b),
+            Some(SupportedOSs::Linux) => glob_search_bookmarks_path(b),
             Some(SupportedOSs::Windows) => todo!(),
             None => unreachable!(),
         };
@@ -55,8 +55,8 @@ pub fn search_browsers(options: &CliOptions) -> Result<CliOptions, Box<dyn Error
 // the file is sqlite DB names "places.sqlite", the bookmark table is name "moz_bookmarks" which is a reference to another table named "moz_places".
 
 // The job now is to look for this two patterns using given browser userdata path
-fn glob_search_bookmarks_linux(browser: &mut Browser) -> Option<PathBuf> {
-    let pattern = pattern_builder_linux(
+fn glob_search_bookmarks_path(browser: &mut Browser) -> Option<PathBuf> {
+    let pattern = pattern_builder(
         browser.userdata_path.get(&SupportedOSs::Linux).unwrap(),
         &browser.store_type,
     );
@@ -110,8 +110,7 @@ pub fn request_path(name: &SupportedBrowsers) -> String {
         request_path(name)
     }
 }
-fn glob_search_bookmarks_windows(pattern: &str) {}
-fn pattern_builder_linux(userdata: &str, store_type: &BookmarkStoreType) -> String {
+fn pattern_builder(userdata: &str, store_type: &BookmarkStoreType) -> String {
     let pattern = match store_type {
         BookmarkStoreType::JSON => {
             format!("{}/{}*/{}", get_home_directory(), userdata, "Bookmarks")

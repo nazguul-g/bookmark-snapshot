@@ -54,14 +54,6 @@ pub fn cli() -> Result<(), Box<dyn Error>> {
                 .num_args(1..),
         )
         .arg(
-            Arg::new("github")
-                .long("github")
-                .short('g')
-                .help("Target Repository url")
-                .required(false)
-                .value_name("GITHUB_URL"),
-        )
-        .arg(
             Arg::new("outputpath")
                 .long("outputpath")
                 .short('p')
@@ -104,6 +96,7 @@ pub fn cli() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
+// helper function
 fn verify_routine_count(matches: &ArgMatches) -> Result<(), ()> {
     if let Some(_) = matches.get_one::<u32>("count")
         && matches.get_one::<String>("routine").is_none()
@@ -125,11 +118,6 @@ fn handle_matches(matches: &ArgMatches) -> Result<(), Box<dyn Error>> {
     };
     options.supported_os = Some(os);
 
-    // repo option match
-    if let Some(gh_repository) = matches.get_one::<String>("github") {
-        // to-do: add URL check
-        options.github = Some(gh_repository.clone());
-    }
     // browser options match
     if let Some(browsers) = matches.get_many::<String>("browser") {
         let mut selected_browsers: Vec<Browser> = Vec::new();

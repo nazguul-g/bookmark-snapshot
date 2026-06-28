@@ -6,12 +6,12 @@
 [25/06/2026]
 - [x] start understanding how Linux scheduler work
 - [x] implement the scheduler
-- [ ] a plan of GitHub authentication
+- [ ] a plan of GitHub authentication (support for remote is dropped)
 
 
 [General] 
 - [ ] support to gecko
-- [ ] remote save
+- [ ] remote save (support for remote is dropped)
 - [ ] logs
 - [ ] Enhanced interactions between user and CLI
 - [ ] windows support
